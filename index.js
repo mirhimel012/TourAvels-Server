@@ -73,7 +73,7 @@ async function run() {
         const result = await touristsSpotCollection.updateOne(filter, spot, options);
         res.send(result);
     })
-
+    // Delete a spot
     app.delete('/touristsSpot/:id', async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) }
