@@ -23,7 +23,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
+    // Connect the client to the server	(optional starting in v4.7).
     await client.connect();
 
     const touristsSpotCollection = client.db('touristsSpotDB').collection('touristsSpot');
@@ -73,6 +73,13 @@ async function run() {
         const result = await touristsSpotCollection.updateOne(filter, spot, options);
         res.send(result);
     })
+
+    app.delete('/touristsSpot/:id', async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) }
+      const result = await touristsSpotCollection.deleteOne(query);
+      res.send(result);
+  })
 
 
 
