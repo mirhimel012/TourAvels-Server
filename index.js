@@ -20,10 +20,8 @@ app.use(express.json());
 
 // Handle preflight OPTIONS requests for all routes
 app.options('*', cors({
-  origin: [
-    'http://localhost:5173',
-    'https://touravels.vercel.app'
-  ],
+  origin: ['http://localhost:5173', 'https://touravels.vercel.app'],
+  methods: ['GET','POST','PUT','DELETE','OPTIONS'],
   credentials: true
 }));
 
