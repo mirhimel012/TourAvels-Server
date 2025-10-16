@@ -28,7 +28,7 @@ const client = new MongoClient(uri, {
 
 let touristsSpotCollection;
 
-// ✅ Connect once when the function is initialized
+// Connect once
 async function connectDB() {
   if (!touristsSpotCollection) {
     try {
@@ -43,65 +43,75 @@ async function connectDB() {
 }
 connectDB();
 
-// ✅ Routes
+// Routes
 app.get('/', (req, res) => {
   res.send('TourAvels server is running');
 });
 
+// GET all spots
 app.get('/touristsSpot', async (req, res) => {
   try {
+    if (!touristsSpotCollection) throw new Error("DB not connected");
     const result = await touristsSpotCollection.find().toArray();
-    res.send(result);
+    res.send(Array.isArray(result) ? result : []); // Always send an array
   } catch (err) {
     console.error(err);
-    res.status(500).send({ message: "Error fetching spots" });
+    res.status(500).send([]); // fallback: empty array
   }
 });
 
+// GET single spot
 app.get('/touristsSpot/:id', async (req, res) => {
   try {
+    if (!touristsSpotCollection) throw new Error("DB not connected");
     const id = req.params.id;
-    const query = { _id: new ObjectId(id) };
-    const result = await touristsSpotCollection.findOne(query);
-    res.send(result);
+    const result = await touristsSpotCollection.findOne({ _id: new ObjectId(id) });
+    res.send(result || {}); // always send an object
   } catch (err) {
     console.error(err);
-    res.status(500).send({ message: "Error fetching spot" });
+    res.status(500).send({});
   }
 });
 
+// POST new spot
 app.post('/touristsSpot', async (req, res) => {
   try {
+    if (!touristsSpotCollection) throw new Error("DB not connected");
     const newSpot = req.body;
     const result = await touristsSpotCollection.insertOne(newSpot);
     res.send(result);
   } catch (err) {
+    console.error(err);
     res.status(500).send({ message: "Error adding spot" });
   }
 });
 
+// PUT update spot
 app.put('/touristsSpot/:id', async (req, res) => {
   try {
+    if (!touristsSpotCollection) throw new Error("DB not connected");
     const id = req.params.id;
     const updatedSpot = req.body;
-    const filter = { _id: new ObjectId(id) };
-    const updateDoc = {
-      $set: updatedSpot
-    };
-    const result = await touristsSpotCollection.updateOne(filter, updateDoc);
+    const result = await touristsSpotCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updatedSpot }
+    );
     res.send(result);
   } catch (err) {
+    console.error(err);
     res.status(500).send({ message: "Error updating spot" });
   }
 });
 
+// DELETE spot
 app.delete('/touristsSpot/:id', async (req, res) => {
   try {
+    if (!touristsSpotCollection) throw new Error("DB not connected");
     const id = req.params.id;
-    const query = { _id: new ObjectId(id) };
-    const result = await touristsSpotCollection.deleteOne(query);
+    const result = await touristsSpotCollection.deleteOne({ _id: new ObjectId(id) });
     res.send(result);
   } catch (err) {
+    console.error(err);
     res.status(500).send({ message: "Error deleting spot" });
   }
 });
