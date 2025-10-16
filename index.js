@@ -12,9 +12,20 @@ app.use(cors({
     'http://localhost:5173',
     'https://touravels.vercel.app'
   ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
+
 app.use(express.json());
+
+// Handle preflight OPTIONS requests for all routes
+app.options('*', cors({
+  origin: [
+    'http://localhost:5173',
+    'https://touravels.vercel.app'
+  ],
+  credentials: true
+}));
 
 // MongoDB Connection
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.0coytx6.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -53,10 +64,10 @@ app.get('/touristsSpot', async (req, res) => {
   try {
     if (!touristsSpotCollection) throw new Error("DB not connected");
     const result = await touristsSpotCollection.find().toArray();
-    res.send(Array.isArray(result) ? result : []); // Always send an array
+    res.send(Array.isArray(result) ? result : []);
   } catch (err) {
     console.error(err);
-    res.status(500).send([]); // fallback: empty array
+    res.status(500).send([]);
   }
 });
 
@@ -66,7 +77,7 @@ app.get('/touristsSpot/:id', async (req, res) => {
     if (!touristsSpotCollection) throw new Error("DB not connected");
     const id = req.params.id;
     const result = await touristsSpotCollection.findOne({ _id: new ObjectId(id) });
-    res.send(result || {}); // always send an object
+    res.send(result || {});
   } catch (err) {
     console.error(err);
     res.status(500).send({});
@@ -119,3 +130,4 @@ app.delete('/touristsSpot/:id', async (req, res) => {
 app.listen(port, () => {
   console.log(`✅ TourAvels Server is running on port ${port}`);
 });
+
