@@ -10,7 +10,6 @@ const port = process.env.PORT || 5000;
 app.use(cors({
   origin: [
     'http://localhost:5173',
-    'https://tour-avels-server-cmxequqhr-mirhimel012.vercel.app'
     'https://touravels.vercel.app'
   ],
   credentials: true
