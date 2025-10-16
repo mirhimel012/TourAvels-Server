@@ -2,17 +2,22 @@ const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+
 const app = express();
 const port = process.env.PORT || 5000;
 
-// middleware
-app.use(cors());
+// Middleware
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://touravels.vercel.app'
+  ],
+  credentials: true
+}));
 app.use(express.json());
 
+// MongoDB Connection
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.0coytx6.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-console.log(uri);
-
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version.
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -21,86 +26,86 @@ const client = new MongoClient(uri, {
   }
 });
 
-async function run() {
-  try {
-    // Connect the client to the server	(optional starting in v4.7).
+let touristsSpotCollection;
 
-    //
-    // await client.connect();
-
-    const touristsSpotCollection = client.db('touristsSpotDB').collection('touristsSpot');
-
-        app.get('/touristsSpot', async (req, res) => {
-            const cursor = touristsSpotCollection.find();
-            const result = await cursor.toArray();
-            res.send(result);
-        })
-
-        app.get('/touristsSpot/:id', async(req, res) => {
-          const id = req.params.id;
-          const query = {_id: new ObjectId(id)}
-          const result = await touristsSpotCollection.findOne(query);
-          res.send(result);
-      })
-
-      app.post('/touristsSpot', async (req, res) => {
-          const newTouristsSpot = req.body;
-          console.log(newTouristsSpot);
-          const result = await touristsSpotCollection.insertOne(newTouristsSpot);
-          res.send(result);
-      })
-
-      app.put('/touristsSpot/:id', async(req, res) => {
-        const id = req.params.id;
-        const filter = {_id: new ObjectId(id)}
-        const options = { upsert: true };
-        const updatedSpot = req.body;
-
-        const spot = {
-            $set: {
-                name: updatedSpot.name, 
-                country: updatedSpot.country, 
-                cost: updatedSpot.cost, 
-                seasonality: updatedSpot.seasonality, 
-                travel_time: updatedSpot.travel_time, 
-                totaVisitorsPerYear: updatedSpot.totaVisitorsPerYear, 
-                message: updatedSpot.message,
-                location: updatedSpot.location,
-                photo: updatedSpot.photo
-            }
-        }
-
-        const result = await touristsSpotCollection.updateOne(filter, spot, options);
-        res.send(result);
-    })
-    // Delete a spot
-    app.delete('/touristsSpot/:id', async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) }
-      const result = await touristsSpotCollection.deleteOne(query);
-      res.send(result);
-  })
-
-
-
-    // Send a ping to confirm a successful connection
-
-    //
-    // await client.db("admin").command({ ping: 1 });
-
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    // await client.close();
+// ✅ Connect once when the function is initialized
+async function connectDB() {
+  if (!touristsSpotCollection) {
+    try {
+      await client.connect();
+      const db = client.db('touristsSpotDB');
+      touristsSpotCollection = db.collection('touristsSpot');
+      console.log("✅ MongoDB connected successfully");
+    } catch (error) {
+      console.error("❌ MongoDB connection failed:", error);
+    }
   }
 }
-run().catch(console.dir);
+connectDB();
 
-
+// ✅ Routes
 app.get('/', (req, res) => {
-    res.send('Journey Master server is running')
-})
+  res.send('TourAvels server is running');
+});
+
+app.get('/touristsSpot', async (req, res) => {
+  try {
+    const result = await touristsSpotCollection.find().toArray();
+    res.send(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ message: "Error fetching spots" });
+  }
+});
+
+app.get('/touristsSpot/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) };
+    const result = await touristsSpotCollection.findOne(query);
+    res.send(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send({ message: "Error fetching spot" });
+  }
+});
+
+app.post('/touristsSpot', async (req, res) => {
+  try {
+    const newSpot = req.body;
+    const result = await touristsSpotCollection.insertOne(newSpot);
+    res.send(result);
+  } catch (err) {
+    res.status(500).send({ message: "Error adding spot" });
+  }
+});
+
+app.put('/touristsSpot/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    const updatedSpot = req.body;
+    const filter = { _id: new ObjectId(id) };
+    const updateDoc = {
+      $set: updatedSpot
+    };
+    const result = await touristsSpotCollection.updateOne(filter, updateDoc);
+    res.send(result);
+  } catch (err) {
+    res.status(500).send({ message: "Error updating spot" });
+  }
+});
+
+app.delete('/touristsSpot/:id', async (req, res) => {
+  try {
+    const id = req.params.id;
+    const query = { _id: new ObjectId(id) };
+    const result = await touristsSpotCollection.deleteOne(query);
+    res.send(result);
+  } catch (err) {
+    res.status(500).send({ message: "Error deleting spot" });
+  }
+});
 
 app.listen(port, () => {
-    console.log(`Journey Master Server is running on port: ${port}`)
-})
+  console.log(`✅ TourAvels Server is running on port ${port}`);
+});
