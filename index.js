@@ -11,7 +11,8 @@ const port = process.env.PORT || 5000;
 // --- CORS Middleware ---
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://touravels.vercel.app'
+  'https://touravels.vercel.app',
+  'https://touravels.netlify.app'
 ];
 
 app.use(cors({
