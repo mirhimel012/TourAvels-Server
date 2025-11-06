@@ -152,16 +152,27 @@ app.get('/tourPlans', async (req, res) => {
   }
 });
 
-// Get one plan by ID
+// Get one plan by ID (with UID check)
 app.get('/tourPlans/:id', async (req, res) => {
   try {
     const id = req.params.id;
-    const result = await tourPlansCollection.findOne({ _id: new ObjectId(id) });
-    res.send(result || {});
+    const uid = req.query.uid; // send user UID from frontend if needed
+
+    if (!uid) return res.status(400).send({ message: 'User UID required' });
+
+    const result = await tourPlansCollection.findOne({ 
+      _id: new ObjectId(id),
+      uid: uid  // only fetch if the tour belongs to this user
+    });
+
+    if (!result) return res.status(404).send({ message: 'Tour not found or not yours' });
+
+    res.send(result);
   } catch (err) {
     res.status(500).send({ message: 'Error fetching plan', error: err.message });
   }
 });
+
 
 // Add a new tour plan
 app.post('/tourPlans', async (req, res) => {
