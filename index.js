@@ -168,11 +168,16 @@ app.post('/tourPlans', async (req, res) => {
   try {
     const newPlan = req.body;
     const result = await tourPlansCollection.insertOne(newPlan);
-    res.send(result);
+
+    // Fetch the saved document with the inserted _id
+    const savedPlan = await tourPlansCollection.findOne({ _id: result.insertedId });
+
+    res.status(201).send(savedPlan); // ✅ return full tour object
   } catch (err) {
     res.status(500).send({ message: 'Error adding plan', error: err.message });
   }
 });
+
 
 // Update a tour plan
 app.put('/tourPlans/:id', async (req, res) => {
