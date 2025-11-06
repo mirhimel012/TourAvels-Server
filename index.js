@@ -51,7 +51,7 @@ async function connectDB() {
     await client.connect();
     const db = client.db('touristsSpotDB');
     touristsSpotCollection = db.collection('touristsSpot');
-    tourPlansCollection = db.collection('tourPlans'); // 🆕 new collection
+    tourPlansCollection = db.collection('tourPlans');
     await client.db('admin').command({ ping: 1 });
     console.log('✅ MongoDB connected and ping succeeded');
   } catch (error) {
@@ -136,9 +136,9 @@ app.delete('/touristsSpot/:id', async (req, res) => {
   }
 });
 
-// ====================
-// TOUR PLANS ROUTES 🆕
-// ====================
+// ==================
+// TOUR PLANS ROUTES 
+// ==================
 
 // Get all plans (or by user email)
 app.get('/tourPlans', async (req, res) => {
@@ -177,7 +177,6 @@ app.post('/tourPlans', async (req, res) => {
     res.status(500).send({ message: 'Error adding plan', error: err.message });
   }
 });
-
 
 // Update a tour plan
 app.put('/tourPlans/:id', async (req, res) => {
